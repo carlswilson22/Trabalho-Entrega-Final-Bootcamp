@@ -1,3 +1,5 @@
+![Build Status](https://github.com/SEU_USUARIO/NOME_DO_REPOSITORIO/actions/workflows/ci.yml/badge.svg)
+
 # 💊 MedCheck: O seu aliado na saúde diária
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge)
