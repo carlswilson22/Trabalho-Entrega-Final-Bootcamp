@@ -1,68 +1,80 @@
-# MedRemind CLI 💙
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
 
-"A saúde é construída nos pequenos hábitos diários, mas manter o controle de cada detalhe não deveria ser um fardo."
+    <h1>💊 MedLembrete</h1>
+    <p><strong>Cuidar de quem amamos começa pela organização e segurança na hora de tomar cada medicamento.</strong></p>
+    
+    <p>No meio da correria do dia a dia ou na complexidade de um tratamento de saúde, esquecer uma dose de remédio é um risco real que pode causar ansiedade e complicações médicas. O MedLembrete nasceu para ser um aliado simples e direto, transformando o terminal do seu computador em uma ferramenta de cuidado e precisão.</p>
 
-A rotina de cuidados com a saúde pode ser imensamente complexa. O esquecimento de uma simples dose pode gerar ansiedade e, a longo prazo, afetar significativamente a estabilidade e a qualidade de vida de qualquer pessoa.
+    <hr>
 
-O Problema: Para idosos, pacientes crônicos e cuidadores que dão o seu melhor todos os dias, gerenciar múltiplos horários, miligramas e nomenclaturas difíceis ao mesmo tempo é uma tarefa exaustiva. A constante incerteza — "Será que eu já dei esse remédio hoje?" — é uma dor real e silenciosa em muitos lares.
+    <h2>🔍 O Problema Real</h2>
+    <p>O esquecimento ou a confusão com horários de medicamentos é um dos principais motivos de reinternações hospitalares e falhas em tratamentos crônicos. Para idosos que moram sozinhos, pessoas neurodivergentes ou cuidadores com rotinas exaustivas, manter o controle mental de todas as doses é uma carga cognitiva pesada e perigosa.</p>
 
-A Solução: O MedRemind foi desenhado para ser o seu braço direito tecnológico. Criado para funcionar de forma leve e acessível através de um terminal (interface CLI), ele simplifica o monitoramento retirando distrações visuais e entregando clareza e previsibilidade sobre o seu dia de cuidados.
+    <h2>💡 Proposta da Solução</h2>
+    <p>O MedLembrete oferece uma interface de linha de comando (CLI) intuitiva onde o usuário pode cadastrar seus medicamentos e horários em segundos. Sem distrações ou menus complexos, a solução foca no que importa: garantir que a informação sobre o próximo remédio esteja sempre disponível e organizada.</p>
 
-✨ Funcionalidades Principais
-Agendamento Seguro: Registro de nome, dosagem e horário (formato HH:mm).
+    <h2>🎯 Público-Alvo</h2>
+    <ul>
+        <li><strong>Cuidadores:</strong> Que precisam gerenciar a rotina de terceiros.</li>
+        <li><strong>Pacientes Crônicos:</strong> Que possuem uma grade extensa de medicações diárias.</li>
+        <li><strong>Idosos com autonomia tecnológica:</strong> Que buscam uma ferramenta leve e sem propagandas.</li>
+    </ul>
 
-Visualização Clara: Listagem organizada de todos os lembretes ativos em tempo real.
+    <h2>✨ Funcionalidades Principais</h2>
+    <ul>
+        <li><strong>Agendamento Seguro:</strong> Registro de nome, dosagem e horário (formato HH:mm).</li>
+        <li><strong>Visualização Clara:</strong> Listagem organizada de todos os lembretes ativos.</li>
+        <li><strong>Gestão de Lista:</strong> Remoção simples de medicamentos ao fim do tratamento.</li>
+        <li><strong>Validação Inteligente:</strong> O sistema impede entradas inválidas para evitar erros de registro.</li>
+    </ul>
 
-Gestão de Lista: Remoção simples de medicamentos ao fim de cada tratamento.
+    <h2>🛠 Tecnologias Utilizadas</h2>
+    <ul>
+        <li><strong>Linguagem:</strong> Node.js (JavaScript)</li>
+        <li><strong>Testes:</strong> Jest</li>
+        <li><strong>Qualidade de Código:</strong> ESLint</li>
+        <li><strong>Automação:</strong> GitHub Actions (CI)</li>
+    </ul>
 
-Validação Inteligente: O sistema impede entradas inválidas para evitar erros cruciais de registro.
+    <hr>
 
-🌱 Preparando o Terreno
-Queremos que você comece a usar a interface sem burocracias técnicas. Certifique-se de ter o Node.js instalado e siga os passos:
+    <h2>🚀 Como Executar o Projeto</h2>
 
-1. Instalação
-Para preparar a terra e garantir que todos os pacotes vitais do sistema entrem no seu ambiente:
+    <h3>1. Instruções de Instalação</h3>
+    <p>Certifique-se de ter o Node.js instalado em sua máquina.</p>
+    <pre><code># Clone o repositório
+git clone https://github.com/seu-usuario/medlembrete.git
 
-Bash
-# Clone o repositório
-git clone https://github.com/SEU-USUARIO/medremind-repo.git
+# Entre na pasta
+cd medlembrete
 
-# Entre na pasta e instale as dependências
-cd medremind-repo
-npm install
-2. Como Começar (Execução)
-Para despertar a inteligência do sistema e abrir o menu interativo:
+# Instale as dependências
+npm install</code></pre>
 
-Bash
-npm start
-(Ou utilize o comando direto: node src/index.js)
+    <h3>2. Instruções de Execução</h3>
+    <p>Para iniciar a aplicação e gerenciar seus lembretes:</p>
+    <pre><code>npm start</code></pre>
+    <p><em>(Ou use <code>node src/index.js</code>)</em></p>
 
-3. Garantindo a Segurança (Testes)
-Para rodar nossa bateria de testes automatizados e verificar a integridade do sistema:
+    <h3>3. Instruções para Rodar os Testes</h3>
+    <pre><code>npm test</code></pre>
 
-Bash
-npm test
-4. Padronização (Linting)
-Para executar a análise estática e garantir que o código segue as melhores práticas:
+    <h3>4. Instruções para Rodar o Lint</h3>
+    <pre><code>npm run lint</code></pre>
 
-Bash
-npm run lint
-🛠 Tecnologias com Propósito
-As escolhas estruturais deste projeto visam viabilizar um cuidado seguro e resiliente:
+    <hr>
 
-Fundações Ágeis: Escolhemos Node.js pela velocidade na execução via console, evitando esperas em páginas lentas.
+    <h2>📌 Informações Adicionais</h2>
+    <ul>
+        <li><strong>Versão Atual:</strong> 1.0.0 (Versionamento Semântico)</li>
+        <li><strong>Autor:</strong> [Seu Nome Aqui]</li>
+        <li><strong>Repositório Oficial:</strong> <a href="https://github.com/seu-usuario/medlembrete">https://github.com/seu-usuario/medlembrete</a></li>
+    </ul>
 
-Rigor da Informação: Utilizamos o framework Jest para testes unitários. Isso garante que o painel nunca calcule erroneamente ou repasse informações alteradas.
-
-Qualidade Estática: Implementamos o ESLint para garantir que cada linha de código seja legível e padronizada.
-
-Compromisso de Estabilidade: Utilizamos Versionamento Semântico (v1.0.0). Esta numeração não é apenas técnica; é a nossa promessa de que o sistema entregue é íntegro e duradouro.
-
-Validação Contínua: Configuramos GitHub Actions para que cada alteração no código seja testada automaticamente antes de chegar ao usuário final.
-
-📝 Identificação do Projeto
-Versão Atual: 1.0.0
-
-Autor: Carlos Wilson Dos Santos Gonçalves
-
-Repositório: [[LINK DO SEU GITHUB AQUI]](https://github.com/carlswilson22/Trabalho-Inicial-Bootcamp.git)
+</body>
+</html>
