@@ -11,6 +11,12 @@ class MedicationManager {
       throw new Error("O nome do medicamento não pode ser vazio.");
     }
 
+    const dosageRegex = /^(\d+(?:[.,]\d+)?)\s*[a-zA-Z]+.*$/i;
+    const dosageMatch = dosage ? dosage.trim().match(dosageRegex) : null;
+    if (!dosageMatch || parseFloat(dosageMatch[1].replace(',', '.')) <= 0) {
+      throw new Error("A dosagem deve conter uma quantidade válida maior que zero e uma unidade de medida (ex: 500mg).");
+    }
+
     const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
     if (!time || !timeRegex.test(time)) {
       throw new Error("O horário deve seguir o formato HH:mm.");
@@ -65,7 +71,7 @@ class MedicationManager {
       };
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        return { erro: 'CEP não encontrado. Verifique o número e tente novamente.' };
+        return { erro: '❌ [ERRO]: CEP não localizado na base de dados. Por favor, verifique o número.' };
       }
       return { erro: 'Não foi possível consultar o CEP. Verifique sua conexão e tente novamente.' };
     }

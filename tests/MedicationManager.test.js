@@ -38,6 +38,23 @@ describe('MedicationManager (Testes Unitários)', () => {
     }).toThrow("O nome do medicamento não pode ser vazio.");
   });
 
+  test('deve lançar um erro se a dosagem for vazia ou inválida', () => {
+    // Vazia
+    expect(() => {
+      manager.addMedication('Aspirina', '', '12:00');
+    }).toThrow("A dosagem deve conter uma quantidade válida");
+
+    // Inválida (sem número)
+    expect(() => {
+      manager.addMedication('Aspirina', 'comprimido', '12:00');
+    }).toThrow("A dosagem deve conter uma quantidade válida");
+
+    // Inválida (zero ou negativo)
+    expect(() => {
+      manager.addMedication('Aspirina', '0mg', '12:00');
+    }).toThrow("A dosagem deve conter uma quantidade válida");
+  });
+
   // 3. Caso Limite (Edge Case)
   test('deve lidar amigavelmente (sem crash) ao tentar remover um ID inexistente', () => {
     // Registra alguns
