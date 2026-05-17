@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const readline = require('readline');
 const MedicationManager = require('./src/MedicationManager');
 
@@ -56,13 +57,26 @@ function addMedicationPrompt() {
   rl.question('Nome do medicamento: ', (name) => {
     rl.question('Dosagem (ex: 500mg): ', (dosage) => {
       rl.question('Horário (HH:mm): ', (time) => {
-        try {
-          const med = manager.addMedication(name, dosage, time);
-          console.log(`\n${colors.green}Medicamento ${med.name} agendado para as ${med.time} com sucesso!${colors.reset}`);
-        } catch (error) {
-          console.log(`\n${colors.red}Erro: ${error.message}${colors.reset}`);
-        }
-        showMenu();
+        rl.question('CEP do usuário (somente números): ', async (cep) => {
+          // Busca localização pelo CEP
+          console.log(`\n${colors.yellow}Buscando localização...${colors.reset}`);
+          const location = await manager.fetchLocationByCep(cep);
+
+          if (location.erro) {
+            console.log(`\n${colors.red}${location.erro}${colors.reset}`);
+          } else {
+            console.log(`\n${colors.green}Localização confirmada: ${location.cidade} - ${location.bairro}${colors.reset}`);
+          }
+
+          // Registra o medicamento independentemente do resultado do CEP
+          try {
+            const med = manager.addMedication(name, dosage, time);
+            console.log(`\n${colors.green}Medicamento ${med.name} agendado para as ${med.time} com sucesso!${colors.reset}`);
+          } catch (error) {
+            console.log(`\n${colors.red}Erro: ${error.message}${colors.reset}`);
+          }
+          showMenu();
+        });
       });
     });
   });

@@ -1,6 +1,6 @@
 # 💊 MedRemind - Lembrete de Medicamentos CLI
 
-**Versão:** 1.0.0
+**Versão:** 1.1.0
 
 ## 🎯 Sobre o Projeto
 
@@ -56,6 +56,46 @@ npm test
 # Executa a verificação estática de qualidade do código
 npm run lint
 ```
+
+---
+
+## 🚀 Execução Pública
+
+Qualquer pessoa pode executar o MedLembrete **diretamente do terminal**, sem precisar clonar o repositório, usando o `npx`:
+
+```bash
+npx medlembrete
+```
+
+> ☝️ O `npx` baixa e executa o pacote automaticamente. Não é necessário instalar nada globalmente.
+
+### 📦 Link do pacote no NPM
+
+**https://www.npmjs.com/package/medlembrete**
+
+### Instalação global (opcional)
+
+Para instalar o comando permanentemente no seu sistema:
+
+```bash
+npm install -g medlembrete
+```
+
+Depois, basta rodar em qualquer terminal:
+
+```bash
+medlembrete
+```
+
+---
+
+## 🌐 Integração com BrasilAPI
+
+O sistema consulta a [BrasilAPI](https://brasilapi.com.br) durante o cadastro de medicamentos para buscar a localização do usuário a partir do CEP informado.
+
+- **Endpoint utilizado:** `GET https://brasilapi.com.br/api/cep/v1/{cep}`
+- **Biblioteca:** [axios](https://www.npmjs.com/package/axios)
+- **Tratamento de erros:** CEP inválido, não encontrado (404), falha de conexão e timeout
 
 ---
 
