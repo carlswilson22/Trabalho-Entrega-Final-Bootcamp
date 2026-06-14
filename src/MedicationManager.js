@@ -3,8 +3,6 @@ import axios from 'axios';
 import Medication from './models/Medication.js'; 
 
 export default class MedicationManager {
-  
-  // 1. Função com MongoDB, BrasilAPI e a nova funcionalidade do Vinicius
   async addMedication(nome, dosagem, horario, cep) {
     if (!nome || nome.trim() === '') throw new Error("O nome do medicamento não pode ser vazio.");
 
@@ -17,7 +15,6 @@ export default class MedicationManager {
     const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
     if (!horario || !timeRegex.test(horario)) throw new Error("O horário deve seguir o formato HH:mm.");
 
-    // Validação de Conflito de Horário (Vinicius)
     const conflito = await Medication.findOne({ horario: horario });
     if (conflito) {
       console.log(`\n\x1b[33m⚠️  [ALERTA DE AGENDA]: Você já possui o medicamento "${conflito.nome}" agendado para as ${horario}!\x1b[0m`);
@@ -46,18 +43,15 @@ export default class MedicationManager {
     return newMedication;
   }
 
-  // 2. Buscar todos do MongoDB
   async listAll() {
     return await Medication.find(); 
   }
 
-  // 3. Remover do MongoDB
   async removeMedication(id) {
     const removedMedication = await Medication.findOneAndDelete({ id: id }); 
     return removedMedication ? removedMedication : null;
   }
 
-  // 4. Função da BrasilAPI
   async fetchLocationByCep(cep) {
     const sanitizedCep = String(cep).replace(/\D/g, '');
     if (sanitizedCep.length !== 8) return { erro: 'CEP inválido.' };
@@ -71,7 +65,6 @@ export default class MedicationManager {
     }
   }
 
-  // 5. FUNÇÃO DE RELATÓRIO RECUPERADA (Evita o erro "is not a function")
   async getAdesaoReport() {
     const meds = await this.listAll();
     const report = {
