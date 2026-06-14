@@ -1,83 +1,60 @@
+import crypto from 'crypto';
 import axios from 'axios';
-import Medication from './models/Medication.js'; // Importe o seu modelo Mongoose
+import Medication from './models/Medication.js'; 
 
-class MedicationManager {
-  // Não precisamos mais do construtor com array, pois o banco é nossa fonte da verdade
-
+export default class MedicationManager {
+  
+  // 1. Nossa função refatorada com MongoDB e BrasilAPI
   async addMedication(nome, dosagem, horario, cep) {
-    // Validação básica (o Aluno 2 pode reforçar com a lib 'validator' depois)
-    if (!nome || nome.trim() === '') {
-      throw new Error("O nome do medicamento não pode ser vazio.");
+    if (!nome || nome.trim() === '') throw new Error("O nome do medicamento não pode ser vazio.");
+
+    const dosageRegex = /^(\d+(?:[.,]\d+)?)\s*[a-zA-Z]+.*$/i;
+    const dosageMatch = dosagem ? dosagem.trim().match(dosageRegex) : null;
+    if (!dosageMatch || parseFloat(dosageMatch[1].replace(',', '.')) <= 0) {
+      throw new Error("A dosagem deve conter uma quantidade válida.");
     }
 
-    // Criamos e salvamos no MongoDB
-    const novoMed = new Medication({
-      nome: nome.trim(),
-      dosagem: dosagem.trim(),
-      horario: horario,
-      cep: cep
-    });
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!horario || !timeRegex.test(horario)) throw new Error("O horário deve seguir o formato HH:mm.");
 
-    return await novoMed.save();
-  }
-
-  async listAll() {
-    // Busca tudo no MongoDB
-    return await Medication.find();
-  }
-
-  async getAdesaoReport() {
-    const meds = await Medication.find();
-    const total = meds.length;
-
-    let manha = 0;
-    let tarde = 0;
-    let noite = 0;
-
-    meds.forEach(med => {
-      if (med.horario && typeof med.horario === 'string') {
-        const parts = med.horario.split(':');
-        if (parts.length > 0) {
-          const hora = parseInt(parts[0], 10);
-          if (!isNaN(hora)) {
-            if (hora >= 6 && hora < 12) {
-              manha++;
-            } else if (hora >= 12 && hora < 18) {
-              tarde++;
-            } else {
-              noite++;
-            }
-          }
-        }
+    let localizacao = null;
+    if (cep) {
+      const resultadoCep = await this.fetchLocationByCep(cep);
+      if (!resultadoCep.erro) {
+        localizacao = resultadoCep;
+      } else {
+        console.log(resultadoCep.erro); 
       }
+    }
+
+    const newMedication = new Medication({
+      id: crypto.randomUUID(), 
+      nome: nome.trim(),
+      dosagem: dosagem ? dosagem.trim() : '',
+      horario: horario,
+      cep: cep,
+      endereco: localizacao 
     });
 
-    const statusAgenda = total > 3 ? "Sua agenda está organizada" : "Sua agenda está em transição";
-    const alertaSobrecarregado = total > 5;
-
-    return {
-      total,
-      periodos: {
-        manha,
-        tarde,
-        noite
-      },
-      statusAgenda,
-      alertaSobrecarregado
-    };
+    await newMedication.save(); // Salva na nuvem!
+    return newMedication;
   }
 
+  // 2. Buscar todos do MongoDB
+  async listAll() {
+    return await Medication.find(); 
+  }
+
+  // 3. Remover do MongoDB
   async removeMedication(id) {
-    // Remove pelo ID do MongoDB
-    return await Medication.findByIdAndDelete(id);
+    const removedMedication = await Medication.findOneAndDelete({ id: id }); 
+    return removedMedication ? removedMedication : null;
   }
 
+  // 4. Nossa função da BrasilAPI
   async fetchLocationByCep(cep) {
     const sanitizedCep = String(cep).replace(/\D/g, '');
-
-    if (sanitizedCep.length !== 8) {
-      return { erro: 'CEP inválido.' };
-    }
+    if (sanitizedCep.length !== 8) return { erro: 'CEP inválido.' };
 
     try {
       const response = await axios.get(`https://brasilapi.com.br/api/cep/v1/${sanitizedCep}`);
@@ -87,6 +64,7 @@ class MedicationManager {
       return { erro: 'Não foi possível consultar o CEP.' };
     }
   }
-}
 
-export default MedicationManager;
+  // 👇 MANTENHA A FUNÇÃO DO SEU COLEGA AQUI EMBAIXO 👇
+  // async getAdesaoReport() { ... código do colega ... }
+}
