@@ -4,7 +4,7 @@ import Medication from './models/Medication.js';
 
 export default class MedicationManager {
   
-  // 1. Nossa função refatorada com MongoDB e BrasilAPI
+  // 1. Função com MongoDB, BrasilAPI e a nova funcionalidade do Vinicius
   async addMedication(nome, dosagem, horario, cep) {
     if (!nome || nome.trim() === '') throw new Error("O nome do medicamento não pode ser vazio.");
 
@@ -16,6 +16,12 @@ export default class MedicationManager {
 
     const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
     if (!horario || !timeRegex.test(horario)) throw new Error("O horário deve seguir o formato HH:mm.");
+
+    // Validação de Conflito de Horário (Vinicius)
+    const conflito = await Medication.findOne({ horario: horario });
+    if (conflito) {
+      console.log(`\n\x1b[33m⚠️  [ALERTA DE AGENDA]: Você já possui o medicamento "${conflito.nome}" agendado para as ${horario}!\x1b[0m`);
+    }
 
     let localizacao = null;
     if (cep) {
@@ -36,7 +42,7 @@ export default class MedicationManager {
       endereco: localizacao 
     });
 
-    await newMedication.save(); // Salva na nuvem!
+    await newMedication.save();
     return newMedication;
   }
 
@@ -51,7 +57,7 @@ export default class MedicationManager {
     return removedMedication ? removedMedication : null;
   }
 
-  // 4. Nossa função da BrasilAPI
+  // 4. Função da BrasilAPI
   async fetchLocationByCep(cep) {
     const sanitizedCep = String(cep).replace(/\D/g, '');
     if (sanitizedCep.length !== 8) return { erro: 'CEP inválido.' };
@@ -65,6 +71,27 @@ export default class MedicationManager {
     }
   }
 
-  // 👇 MANTENHA A FUNÇÃO DO SEU COLEGA AQUI EMBAIXO 👇
-  // async getAdesaoReport() { ... código do colega ... }
+  // 5. FUNÇÃO DE RELATÓRIO RECUPERADA (Evita o erro "is not a function")
+  async getAdesaoReport() {
+    const meds = await this.listAll();
+    const report = {
+      total: meds.length,
+      periodos: { manha: 0, tarde: 0, noite: 0, madrugada: 0 },
+      statusAgenda: "Sua agenda está organizada"
+    };
+
+    meds.forEach(med => {
+      const hora = parseInt(med.horario.split(':')[0], 10);
+      if (hora >= 6 && hora < 12) report.periodos.manha++;
+      else if (hora >= 12 && hora < 18) report.periodos.tarde++;
+      else if (hora >= 18 && hora < 24) report.periodos.noite++;
+      else report.periodos.madrugada++;
+    });
+
+    if (report.total > 5) {
+      report.statusAgenda = "Alerta de sobrecarga de medicamentos";
+    }
+
+    return report;
+  }
 }

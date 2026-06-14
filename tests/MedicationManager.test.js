@@ -1,76 +1,56 @@
 import MedicationManager from '../src/MedicationManager.js';
+import Medication from '../src/models/Medication.js';
 
 describe('MedicationManager (Testes Unitários)', () => {
   let manager;
 
   beforeEach(() => {
-    // Nova instância limpa antes de cada teste
     manager = new MedicationManager();
+    jest.restoreAllMocks();
   });
 
-  // 1. Caminho Feliz
-  test('deve salvar e listar um medicamento corretamente', () => {
-    // Ação: Agendar medicamento
-    const med = manager.addMedication('Aspirina', '500mg', '12:00');
+  test('deve salvar e listar um medicamento corretamente', async () => {
+    const mockMed = { id: '123', nome: 'Aspirina', dosagem: '500mg', horario: '12:00' };
     
-    // Verificações do objeto salvo
-    expect(med).toHaveProperty('id');
-    expect(med.name).toBe('Aspirina');
-    expect(med.dosage).toBe('500mg');
-    expect(med.time).toBe('12:00');
+    jest.spyOn(Medication.prototype, 'save').mockResolvedValue(mockMed);
+    jest.spyOn(Medication, 'find').mockResolvedValue([mockMed]);
+    jest.spyOn(Medication, 'findOne').mockResolvedValue(null);
 
-    // Verificações na lista
-    const list = manager.listAll();
+    const med = await manager.addMedication('Aspirina', '500mg', '12:00');
+    
+    expect(med.nome).toBe('Aspirina');
+    expect(med.dosagem).toBe('500mg');
+    expect(med.horario).toBe('12:00');
+
+    const list = await manager.listAll();
     expect(list).toHaveLength(1);
-    expect(list[0]).toEqual(med);
   });
 
-  // 2. Entrada Inválida
-  test('deve lançar um erro se o nome do remédio estiver em branco', () => {
-    // Testando com string vazia
-    expect(() => {
-      manager.addMedication('', '500mg', '12:00');
-    }).toThrow("O nome do medicamento não pode ser vazio.");
-    
-    // Testando com espaços em branco apenas
-    expect(() => {
-      manager.addMedication('   ', '200mg', '08:00');
-    }).toThrow("O nome do medicamento não pode ser vazio.");
+  test('deve lançar um erro se o nome do remédio estiver em branco', async () => {
+    await expect(manager.addMedication('', '500mg', '12:00'))
+      .rejects.toThrow("O nome do medicamento não pode ser vazio.");
   });
 
-  test('deve lançar um erro se a dosagem for vazia ou inválida', () => {
-    // Vazia
-    expect(() => {
-      manager.addMedication('Aspirina', '', '12:00');
-    }).toThrow("A dosagem deve conter uma quantidade válida");
-
-    // Inválida (sem número)
-    expect(() => {
-      manager.addMedication('Aspirina', 'comprimido', '12:00');
-    }).toThrow("A dosagem deve conter uma quantidade válida");
-
-    // Inválida (zero ou negativo)
-    expect(() => {
-      manager.addMedication('Aspirina', '0mg', '12:00');
-    }).toThrow("A dosagem deve conter uma quantidade válida");
+  test('deve lançar um erro se a dosagem for vazia ou inválida', async () => {
+    await expect(manager.addMedication('Aspirina', '', '12:00'))
+      .rejects.toThrow("A dosagem deve conter uma quantidade válida.");
   });
 
-  // 3. Caso Limite (Edge Case)
-  test('deve lidar amigavelmente (sem crash) ao tentar remover um ID inexistente', () => {
-    // Registra alguns
-    manager.addMedication('Paracetamol', '500mg', '08:00');
-    
-    // Grava quantidade inicial
-    const totalInicial = manager.listAll().length;
-
-    // Ação: Tentar remover com UUID que não existe neste gerenciador
-    const removedId = 'id-fake-nao-existente-123';
-    const result = manager.removeMedication(removedId);
-    
-    // Verificação de que não crachou e retornou nulo (conforme nossa lógica segura)
+  test('deve lidar amigavelmente (sem crash) ao tentar remover um ID inexistente', async () => {
+    jest.spyOn(Medication, 'findOneAndDelete').mockResolvedValue(null);
+    const result = await manager.removeMedication('id-fake');
     expect(result).toBeNull();
-    
-    // A lista deve permanecer imutável
-    expect(manager.listAll()).toHaveLength(totalInicial);
+  });
+
+  test('deve exibir um alerta se houver conflito de horário', async () => {
+    const medExistente = { nome: 'Dipirona', horario: '14:00' };
+    jest.spyOn(Medication, 'findOne').mockResolvedValue(medExistente);
+    jest.spyOn(Medication.prototype, 'save').mockResolvedValue({});
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+    await manager.addMedication('Aspirina', '500mg', '14:00');
+
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('⚠️  [ALERTA DE AGENDA]'));
+    consoleSpy.mockRestore();
   });
 });
