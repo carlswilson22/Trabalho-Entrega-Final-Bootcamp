@@ -1,13 +1,19 @@
 import axios from 'axios';
 import stream from 'stream';
 import { startCLI } from '../src/index.js';
-import Medication from '../src/models/Medication.js'; // Importamos o modelo do banco
+import Medication from '../src/models/Medication.js'; 
 import { connectDB } from '../src/db.js';
-import mongoose from 'mongoose';
+
+// 1. Bloqueia o Mongoose real para não tentar conectar à internet no GitHub
+jest.mock('mongoose', () => ({
+  connect: jest.fn(),
+  model: jest.fn(),
+  Schema: jest.fn()
+}));
 
 jest.mock('axios');
 jest.mock('../src/db.js', () => ({
-  connectDB: jest.fn() // Simula a conexão com o banco para não travar o teste
+  connectDB: jest.fn().mockResolvedValue(true)
 }));
 
 describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
@@ -16,7 +22,7 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
   let cli;
 
   beforeAll(async () => {
-    // Conecta a um banco de dados falso na memória só para os testes (MongoDB Memory Server seria o ideal, mas mockamos aqui)
+    // 2. Mocks das funções que o MedicationManager chama na nuvem
     jest.spyOn(Medication.prototype, 'save').mockImplementation(function() {
       return Promise.resolve(this);
     });
@@ -26,6 +32,8 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
     jest.spyOn(Medication, 'findOneAndDelete').mockResolvedValue(
       { id: '123', nome: 'Dipirona', dosagem: '1g', horario: '20:00' }
     );
+    // 👇 SUPORTE À FUNÇÃO DO VINICIUS: Simula que não há conflito de horário por padrão
+    jest.spyOn(Medication, 'findOne').mockResolvedValue(null);
   });
 
   beforeEach(() => {
@@ -36,24 +44,19 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
     outputStream = new stream.PassThrough();
     
     // Inicia o CLI com as streams mockadas
-    // IMPORTANTE: Se o seu index.js mudou a forma de exportar ou receber parâmetros, ajuste aqui.
-    // Vamos assumir que a CLI não trava o fluxo nos testes
     cli = startCLI(inputStream, outputStream);
   });
 
   afterEach(() => {
-    // Verifica se cli e rl existem antes de fechar
     if (cli && cli.rl) {
       cli.rl.close();
     }
   });
 
-  // Função auxiliar para injetar respostas como se o usuário digitasse
   const sendInput = (text) => {
     inputStream.write(text + '\n');
   };
 
-  // Função auxiliar para capturar e limpar o stdout até o momento
   const getOutput = () => {
     const data = outputStream.read();
     return data ? data.toString() : '';
@@ -76,10 +79,8 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
     await new Promise(resolve => setTimeout(resolve, 50));
     
     sendInput('01001000'); // CEP Válido
-    await new Promise(resolve => setTimeout(resolve, 100)); // Espera a API responder
+    await new Promise(resolve => setTimeout(resolve, 100)); 
     
-    const output = getOutput();
-    // Como estamos usando o banco agora, verificamos se o save foi chamado
     expect(Medication.prototype.save).toHaveBeenCalled();
   });
 
@@ -95,11 +96,10 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
     await new Promise(resolve => setTimeout(resolve, 50));
     sendInput('08:00');
     await new Promise(resolve => setTimeout(resolve, 50));
-    sendInput('99999999'); // CEP inexistente
+    sendInput('99999999'); 
     
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    const output = getOutput();
     expect(Medication.prototype.save).toHaveBeenCalled();
   });
 
@@ -108,7 +108,6 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
     sendInput('2'); // Ver Agenda
     await new Promise(resolve => setTimeout(resolve, 50));
     
-    // O mock do Medication.find() que fizemos lá em cima vai retornar o Ibuprofeno
     expect(Medication.find).toHaveBeenCalled();
   });
 
@@ -120,7 +119,6 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
     sendInput('123'); // ID do medicamento
     await new Promise(resolve => setTimeout(resolve, 50));
     
-    // Verifica se chamou a função correta do Mongoose
     expect(Medication.findOneAndDelete).toHaveBeenCalledWith({ id: '123' });
   });
   
