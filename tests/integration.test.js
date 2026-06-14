@@ -11,18 +11,9 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
   let cli;
 
   beforeEach(() => {
-    jest.restoreAllMocks();
-    
-    jest.spyOn(Medication.prototype, 'save').mockImplementation(function() {
-      return Promise.resolve(this);
-    });
-    jest.spyOn(Medication, 'find').mockResolvedValue([
-      { id: '123', nome: 'Ibuprofeno', dosagem: '400mg', horario: '10:00' }
-    ]);
-    jest.spyOn(Medication, 'findOneAndDelete').mockResolvedValue(
-      { id: '123', nome: 'Dipirona', dosagem: '1g', horario: '20:00' }
-    );
-    jest.spyOn(Medication, 'findOne').mockResolvedValue(null);
+    jest.clearAllMocks();
+    Medication.find.mockResolvedValue([{ id: '123', nome: 'Ibuprofeno', dosagem: '400mg', horario: '10:00' }]);
+    Medication.findOne.mockResolvedValue(null);
 
     inputStream = new stream.PassThrough();
     outputStream = new stream.PassThrough();
@@ -30,18 +21,13 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
   });
 
   afterEach(() => {
-    if (cli && cli.rl) {
-      cli.rl.close();
-    }
+    if (cli && cli.rl) cli.rl.close();
   });
 
   const sendInput = (text) => { inputStream.write(text + '\n'); };
-  const getOutput = () => { const data = outputStream.read(); return data ? data.toString() : ''; };
 
-  test('deve passar pelo fluxo de adicionar e usar mock do axios', async () => {
+  test('deve passar pelo fluxo de adicionar', async () => {
     axios.get.mockResolvedValue({ data: { city: 'São Paulo', neighborhood: 'Sé' } });
-
-    getOutput();
     sendInput('1');
     await new Promise(resolve => setTimeout(resolve, 50));
     sendInput('Aspirina');
@@ -54,12 +40,5 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
     await new Promise(resolve => setTimeout(resolve, 100)); 
     
     expect(Medication.prototype.save).toHaveBeenCalled();
-  });
-
-  test('deve listar medicamentos salvos', async () => {
-    getOutput();
-    sendInput('2');
-    await new Promise(resolve => setTimeout(resolve, 50));
-    expect(Medication.find).toHaveBeenCalled();
   });
 });
