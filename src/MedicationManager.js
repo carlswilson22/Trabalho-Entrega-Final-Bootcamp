@@ -1,81 +1,92 @@
-const crypto = require('crypto');
-const axios = require('axios');
+import axios from 'axios';
+import Medication from './models/Medication.js'; // Importe o seu modelo Mongoose
 
 class MedicationManager {
-  constructor() {
-    this.medications = [];
-  }
+  // Não precisamos mais do construtor com array, pois o banco é nossa fonte da verdade
 
-  addMedication(name, dosage, time) {
-    if (!name || name.trim() === '') {
+  async addMedication(nome, dosagem, horario, cep) {
+    // Validação básica (o Aluno 2 pode reforçar com a lib 'validator' depois)
+    if (!nome || nome.trim() === '') {
       throw new Error("O nome do medicamento não pode ser vazio.");
     }
 
-    const dosageRegex = /^(\d+(?:[.,]\d+)?)\s*[a-zA-Z]+.*$/i;
-    const dosageMatch = dosage ? dosage.trim().match(dosageRegex) : null;
-    if (!dosageMatch || parseFloat(dosageMatch[1].replace(',', '.')) <= 0) {
-      throw new Error("A dosagem deve conter uma quantidade válida maior que zero e uma unidade de medida (ex: 500mg).");
-    }
+    // Criamos e salvamos no MongoDB
+    const novoMed = new Medication({
+      nome: nome.trim(),
+      dosagem: dosagem.trim(),
+      horario: horario,
+      cep: cep
+    });
 
-    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-    if (!time || !timeRegex.test(time)) {
-      throw new Error("O horário deve seguir o formato HH:mm.");
-    }
+    return await novoMed.save();
+  }
 
-    const newMedication = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      dosage: dosage ? dosage.trim() : '',
-      time: time
+  async listAll() {
+    // Busca tudo no MongoDB
+    return await Medication.find();
+  }
+
+  async getAdesaoReport() {
+    const meds = await Medication.find();
+    const total = meds.length;
+
+    let manha = 0;
+    let tarde = 0;
+    let noite = 0;
+
+    meds.forEach(med => {
+      if (med.horario && typeof med.horario === 'string') {
+        const parts = med.horario.split(':');
+        if (parts.length > 0) {
+          const hora = parseInt(parts[0], 10);
+          if (!isNaN(hora)) {
+            if (hora >= 6 && hora < 12) {
+              manha++;
+            } else if (hora >= 12 && hora < 18) {
+              tarde++;
+            } else {
+              noite++;
+            }
+          }
+        }
+      }
+    });
+
+    const statusAgenda = total > 3 ? "Sua agenda está organizada" : "Sua agenda está em transição";
+    const alertaSobrecarregado = total > 5;
+
+    return {
+      total,
+      periodos: {
+        manha,
+        tarde,
+        noite
+      },
+      statusAgenda,
+      alertaSobrecarregado
     };
-
-    this.medications.push(newMedication);
-    return newMedication;
   }
 
-  listAll() {
-    return this.medications;
+  async removeMedication(id) {
+    // Remove pelo ID do MongoDB
+    return await Medication.findByIdAndDelete(id);
   }
 
-  removeMedication(id) {
-    const index = this.medications.findIndex(med => med.id === id);
-    if (index === -1) {
-      return null; // Ou throw new Error("Medicamento não encontrado.")
-    }
-    
-    // Retorna o objeto removido
-    const removedMedication = this.medications.splice(index, 1)[0];
-    return removedMedication;
-  }
-
-  /**
-   * Busca dados de localização a partir de um CEP usando a BrasilAPI.
-   * @param {string} cep - O CEP a ser consultado (somente dígitos, 8 caracteres).
-   * @returns {Promise<{cidade: string, bairro: string} | {erro: string}>}
-   */
   async fetchLocationByCep(cep) {
-    // Remove caracteres não numéricos (ex: traços, espaços)
     const sanitizedCep = String(cep).replace(/\D/g, '');
 
     if (sanitizedCep.length !== 8) {
-      return { erro: 'CEP inválido. O CEP deve conter exatamente 8 dígitos.' };
+      return { erro: 'CEP inválido.' };
     }
 
     try {
       const response = await axios.get(`https://brasilapi.com.br/api/cep/v1/${sanitizedCep}`);
       const { city, neighborhood } = response.data;
-
-      return {
-        cidade: city,
-        bairro: neighborhood || 'Não informado'
-      };
+      return { cidade: city, bairro: neighborhood || 'Não informado' };
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        return { erro: '❌ [ERRO]: CEP não localizado na base de dados. Por favor, verifique o número.' };
-      }
-      return { erro: 'Não foi possível consultar o CEP. Verifique sua conexão e tente novamente.' };
+      return { erro: 'Não foi possível consultar o CEP.' };
     }
   }
 }
 
-module.exports = MedicationManager;
+export default MedicationManager;

@@ -1,4 +1,4 @@
-const MedicationManager = require('../src/MedicationManager');
+import MedicationManager from '../src/MedicationManager.js';
 
 describe('MedicationManager (Testes Unitários)', () => {
   let manager;

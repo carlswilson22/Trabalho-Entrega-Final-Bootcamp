@@ -1,6 +1,6 @@
-const axios = require('axios');
-const stream = require('stream');
-const { startCLI } = require('../src/index');
+import axios from 'axios';
+import stream from 'stream';
+import { startCLI } from '../src/index.js';
 
 jest.mock('axios');
 
