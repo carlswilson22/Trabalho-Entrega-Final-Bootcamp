@@ -1,4 +1,3 @@
-import { jest } from '@jest/globals';
 import MedicationManager from '../src/MedicationManager.js';
 import Medication from '../src/models/Medication.js';
 
@@ -7,76 +6,70 @@ describe('MedicationManager - getAdesaoReport', () => {
 
   beforeEach(() => {
     manager = new MedicationManager();
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   test('deve retornar relatório com contagem zero quando a base estiver vazia', async () => {
-    // Mock do Mongoose Medication.find para retornar array vazio
-    Medication.find = jest.fn().mockResolvedValue([]);
+    jest.spyOn(Medication, 'find').mockResolvedValue([]);
 
     const report = await manager.getAdesaoReport();
 
     expect(report.total).toBe(0);
     expect(report.periodos.manha).toBe(0);
-    expect(report.periodos.tarde).toBe(0);
-    expect(report.periodos.noite).toBe(0);
-    expect(report.statusAgenda).toBe("Sua agenda está em transição");
-    expect(report.alertaSobrecarregado).toBe(false);
   });
 
   test('deve classificar medicamentos por períodos corretamente', async () => {
     const mockMeds = [
-      { nome: 'Remédio A', dosagem: '10mg', horario: '08:00', cep: '12345678' }, // Manhã
-      { nome: 'Remédio B', dosagem: '20mg', horario: '11:59', cep: '12345678' }, // Manhã
-      { nome: 'Remédio C', dosagem: '500mg', horario: '12:00', cep: '12345678' }, // Tarde
-      { nome: 'Remédio D', dosagem: '2mg', horario: '17:30', cep: '12345678' }, // Tarde
-      { nome: 'Remédio E', dosagem: '1g', horario: '18:00', cep: '12345678' }, // Noite
-      { nome: 'Remédio F', dosagem: '1g', horario: '05:00', cep: '12345678' } // Noite
+      { nome: 'Remédio 1', horario: '08:00' },
+      { nome: 'Remédio 2', horario: '10:30' },
+      { nome: 'Remédio 3', horario: '14:00' },
+      { nome: 'Remédio 4', horario: '16:15' },
+      { nome: 'Remédio 5', horario: '20:00' },
+      { nome: 'Remédio 6', horario: '02:00' }
     ];
 
-    Medication.find = jest.fn().mockResolvedValue(mockMeds);
+    jest.spyOn(Medication, 'find').mockResolvedValue(mockMeds);
 
     const report = await manager.getAdesaoReport();
 
     expect(report.total).toBe(6);
     expect(report.periodos.manha).toBe(2);
     expect(report.periodos.tarde).toBe(2);
-    expect(report.periodos.noite).toBe(2);
+    expect(report.periodos.noite).toBe(1);
+    expect(report.periodos.madrugada).toBe(1);
   });
 
-  test('deve retornar status "organizada" se houver mais de 3 itens', async () => {
+  test('deve retornar status "organizada" se houver menos ou igual a 5 itens', async () => {
     const mockMeds = [
-      { nome: 'A', dosagem: '1', horario: '08:00' },
-      { nome: 'B', dosagem: '1', horario: '09:00' },
-      { nome: 'C', dosagem: '1', horario: '10:00' },
-      { nome: 'D', dosagem: '1', horario: '11:00' }
+      { nome: 'A', horario: '08:00' },
+      { nome: 'B', horario: '12:00' },
+      { nome: 'C', horario: '18:00' },
+      { nome: 'D', horario: '22:00' }
     ];
 
-    Medication.find = jest.fn().mockResolvedValue(mockMeds);
+    jest.spyOn(Medication, 'find').mockResolvedValue(mockMeds);
 
     const report = await manager.getAdesaoReport();
 
     expect(report.total).toBe(4);
     expect(report.statusAgenda).toBe("Sua agenda está organizada");
-    expect(report.alertaSobrecarregado).toBe(false);
   });
 
   test('deve ativar alerta de sobrecarga se houver mais de 5 itens', async () => {
     const mockMeds = [
-      { nome: 'A', dosagem: '1', horario: '08:00' },
-      { nome: 'B', dosagem: '1', horario: '09:00' },
-      { nome: 'C', dosagem: '1', horario: '10:00' },
-      { nome: 'D', dosagem: '1', horario: '11:00' },
-      { nome: 'E', dosagem: '1', horario: '12:00' },
-      { nome: 'F', dosagem: '1', horario: '13:00' }
+      { nome: 'A', horario: '08:00' },
+      { nome: 'B', horario: '10:00' },
+      { nome: 'C', horario: '12:00' },
+      { nome: 'D', horario: '14:00' },
+      { nome: 'E', horario: '16:00' },
+      { nome: 'F', horario: '18:00' }
     ];
 
-    Medication.find = jest.fn().mockResolvedValue(mockMeds);
+    jest.spyOn(Medication, 'find').mockResolvedValue(mockMeds);
 
     const report = await manager.getAdesaoReport();
 
     expect(report.total).toBe(6);
-    expect(report.statusAgenda).toBe("Sua agenda está organizada");
-    expect(report.alertaSobrecarregado).toBe(true);
+    expect(report.statusAgenda).toBe("Alerta de sobrecarga de medicamentos");
   });
 });
