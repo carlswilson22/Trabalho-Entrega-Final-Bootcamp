@@ -4,7 +4,7 @@ import Medication from './models/Medication.js';
 
 export default class MedicationManager {
   
-  // 1. Nossa função refatorada com MongoDB e BrasilAPI
+  // 1. Função com MongoDB, BrasilAPI e a nova funcionalidade do Vinicius
   async addMedication(nome, dosagem, horario, cep) {
     if (!nome || nome.trim() === '') throw new Error("O nome do medicamento não pode ser vazio.");
 
@@ -16,6 +16,12 @@ export default class MedicationManager {
 
     const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
     if (!horario || !timeRegex.test(horario)) throw new Error("O horário deve seguir o formato HH:mm.");
+
+    // 👇 NOVA FUNCIONALIDADE (Vinicius): Validação de Conflito de Horário
+    const conflito = await Medication.findOne({ horario: horario });
+    if (conflito) {
+      console.log(`\n\x1b[33m⚠️  [ALERTA DE AGENDA]: Você já possui o medicamento "${conflito.nome}" agendado para as ${horario}!\x1b[0m`);
+    }
 
     let localizacao = null;
     if (cep) {
