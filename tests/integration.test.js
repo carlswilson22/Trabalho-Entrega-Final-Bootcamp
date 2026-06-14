@@ -2,8 +2,7 @@ import axios from 'axios';
 import stream from 'stream';
 import { startCLI } from '../src/index.js';
 import Medication from '../src/models/Medication.js';
-
-jest.mock('axios');
+import mongoose from 'mongoose';
 
 describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
   let inputStream;
@@ -11,9 +10,21 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
   let cli;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    Medication.find.mockResolvedValue([{ id: '123', nome: 'Ibuprofeno', dosagem: '400mg', horario: '10:00' }]);
-    Medication.findOne.mockResolvedValue(null);
+    jest.restoreAllMocks();
+    
+    // Desliga chamadas externas e o Mongoose nativo usando spyOn puro
+    jest.spyOn(mongoose, 'connect').mockResolvedValue(true);
+    jest.spyOn(Medication.prototype, 'save').mockImplementation(function() {
+      return Promise.resolve(this);
+    });
+    jest.spyOn(Medication, 'find').mockResolvedValue([
+      { id: '123', nome: 'Ibuprofeno', dosagem: '400mg', horario: '10:00' }
+    ]);
+    jest.spyOn(Medication, 'findOneAndDelete').mockResolvedValue(
+      { id: '123', nome: 'Dipirona', dosagem: '1g', horario: '20:00' }
+    );
+    jest.spyOn(Medication, 'findOne').mockResolvedValue(null);
+    jest.spyOn(axios, 'get').mockResolvedValue({ data: { city: 'São Paulo', neighborhood: 'Sé' } });
 
     inputStream = new stream.PassThrough();
     outputStream = new stream.PassThrough();
@@ -27,7 +38,6 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
   const sendInput = (text) => { inputStream.write(text + '\n'); };
 
   test('deve passar pelo fluxo de adicionar', async () => {
-    axios.get.mockResolvedValue({ data: { city: 'São Paulo', neighborhood: 'Sé' } });
     sendInput('1');
     await new Promise(resolve => setTimeout(resolve, 50));
     sendInput('Aspirina');

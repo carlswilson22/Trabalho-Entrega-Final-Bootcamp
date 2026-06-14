@@ -1,4 +1,3 @@
-import { jest } from '@jest/globals';
 import MedicationManager from '../src/MedicationManager.js';
 import Medication from '../src/models/Medication.js';
 
@@ -7,12 +6,15 @@ describe('MedicationManager (Testes Unitários)', () => {
 
   beforeEach(() => {
     manager = new MedicationManager();
-    jest.clearAllMocks();
+    jest.restoreAllMocks(); // Limpa as espionagens entre um teste e outro
   });
 
   test('deve salvar um medicamento corretamente', async () => {
     const mockMed = { id: '123', nome: 'Aspirina', dosagem: '500mg', horario: '12:00' };
-    Medication.prototype.save.mockResolvedValue(mockMed);
+    
+    // Intercepta os métodos do Mongoose em tempo de execução de forma limpa
+    jest.spyOn(Medication.prototype, 'save').mockResolvedValue(mockMed);
+    jest.spyOn(Medication, 'findOne').mockResolvedValue(null);
 
     const med = await manager.addMedication('Aspirina', '500mg', '12:00');
     expect(med.nome).toBe('Aspirina');
@@ -25,7 +27,8 @@ describe('MedicationManager (Testes Unitários)', () => {
 
   test('deve exibir um alerta se houver conflito de horário', async () => {
     const medExistente = { nome: 'Dipirona', horario: '14:00' };
-    Medication.findOne.mockResolvedValue(medExistente);
+    jest.spyOn(Medication, 'findOne').mockResolvedValue(medExistente);
+    jest.spyOn(Medication.prototype, 'save').mockResolvedValue({});
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
     await manager.addMedication('Aspirina', '500mg', '14:00');
