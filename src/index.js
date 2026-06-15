@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 import readline from 'readline';
-import { fileURLToPath } from 'url';
-import path from 'path';
+import express from 'express'; // <-- Nova importação para a Web
 import MedicationManager from './MedicationManager.js';
 import { connectDB } from './db.js';
-import { checkConnection } from './dbCheck.js';
+import { checkConnection } from './dbCheck.js'; // ou dbChecks.js (verifique seu nome exato)
 
 const colors = {
   reset: "\x1b[0m",
@@ -26,7 +25,7 @@ async function startCLI(inputStream = process.stdin, outputStream = process.stdo
 
   async function showMenu() {
     print(`\n${colors.cyan}=== Sistema de Lembrete de Medicamentos ===${colors.reset}`);
-    print("1. Adicionar Remédio | 2. Ver Agenda | 3. Remover | 4. Sair | 5. Ver Relatório de Adesão");
+    print("1. Adicionar Remédio | 2. Ver Agenda | 3. Remover | 4. Sair");
     const option = await askQuestion(`\n${colors.yellow}Escolha uma opção: ${colors.reset}`);
     await handleOption(option.trim());
   }
@@ -37,7 +36,6 @@ async function startCLI(inputStream = process.stdin, outputStream = process.stdo
       case '2': await listMedications(); break;
       case '3': await removeMedicationPrompt(); break;
       case '4': print(`\n${colors.green}Encerrando...${colors.reset}`); rl.close(); return;
-      case '5': await showAdesaoReportPrompt(); break;
       default: print(`${colors.red}Opção inválida.${colors.reset}`);
     }
     if (option !== '4') await showMenu();
@@ -50,7 +48,6 @@ async function startCLI(inputStream = process.stdin, outputStream = process.stdo
     const cep = await askQuestion('CEP: ');
 
     try {
-      // Como o manager agora é assíncrono, usamos await
       await manager.addMedication(name, dosage, time, cep);
       print(`\n${colors.green}Sucesso!${colors.reset}`);
     } catch (e) {
@@ -59,7 +56,7 @@ async function startCLI(inputStream = process.stdin, outputStream = process.stdo
   }
 
   async function listMedications() {
-    const meds = await manager.listAll(); // Agora é await
+    const meds = await manager.listAll();
     meds.forEach(m => print(`ID: ${m._id} | ${m.nome} | ${m.horario}`));
   }
 
@@ -69,45 +66,45 @@ async function startCLI(inputStream = process.stdin, outputStream = process.stdo
     print(removed ? "Removido!" : "Erro ao remover.");
   }
 
-  async function showAdesaoReportPrompt() {
-    try {
-      const report = await manager.getAdesaoReport();
-      if (!report || report.total === 0) {
-        print(`${colors.yellow}Nenhum dado para gerar relatório${colors.reset}`);
-        return;
-      }
-
-      print(`\n${colors.cyan}=== Relatório de Adesão ===${colors.reset}`);
-      print(`Total de medicamentos cadastrados: ${report.total}`);
-      print(`${colors.yellow}Medicamentos por período:${colors.reset}`);
-      print(`  - Manhã: ${report.periodos.manha}`);
-      print(`  - Tarde: ${report.periodos.tarde}`);
-      print(`  - Noite: ${report.periodos.noite}`);
-      print(`${colors.green}Status da Agenda: ${report.statusAgenda}${colors.reset}`);
-
-      if (report.alertaSobrecarregado) {
-        print(`${colors.red}Atenção: Agenda cheia${colors.reset}`);
-      }
-    } catch (e) {
-      print(`\n${colors.red}Erro ao gerar relatório: ${e.message}${colors.reset}`);
-    }
-  }
-
   await showMenu();
   return { rl };
 }
 
-const isMainModule = () => {
-  try {
-    if (!process.argv[1]) return false;
-    return path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
-  } catch {
-    return false;
-  }
-};
+// =====================================================================
+// 🚀 LÓGICA DE AMBIENTE: WEB (Render) vs CLI (Local)
+// O Render sempre fornece uma variável chamada PORT.
+// =====================================================================
 
-if (isMainModule()) {
-  startCLI().catch(err => { console.error(err); process.exit(1); });
+if (process.env.PORT) {
+  // --- MODO NUVEM (Render) ---
+  const app = express();
+  
+  app.get('/', (req, res) => {
+    res.send(`
+      <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+        <h1 style="color: #2b6cb0;">🚀 MedLembrete Online!</h1>
+        <p>O servidor e o banco de dados estão conectados operacionais na nuvem.</p>
+        <p><strong>Atenção:</strong> Esta é uma aplicação de terminal (CLI).</p>
+        <p>Para interagir com o sistema, clone o repositório e rode <code>npm start</code> no seu computador.</p>
+        <br>
+        <a href="https://github.com/carlswilson22/Trabalho-Entrega-Final-Bootcamp" 
+           style="padding: 10px 20px; background: #2b6cb0; color: white; text-decoration: none; border-radius: 5px;">
+           Ver Projeto no GitHub
+        </a>
+      </div>
+    `);
+  });
+
+  app.listen(process.env.PORT, async () => {
+    await connectDB();
+    console.log(`✅ [Web]: Servidor Render escutando na porta ${process.env.PORT}`);
+  });
+
+} else {
+  // --- MODO LOCAL (Seu Computador) ---
+  if (import.meta.url === `file://${process.argv[1]}`) {
+    startCLI().catch(err => { console.error(err); process.exit(1); });
+  }
 }
 
 export { startCLI };
