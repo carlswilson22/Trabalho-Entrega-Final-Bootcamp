@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+import { describe, test, expect, beforeEach } from '@jest/globals';
 import MedicationManager from '../src/MedicationManager.js';
 import Medication from '../src/models/Medication.js';
 

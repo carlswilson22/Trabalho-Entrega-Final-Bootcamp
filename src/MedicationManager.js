@@ -1,7 +1,11 @@
 import Medication from './models/Medication.js';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
 export default class MedicationManager {
-  // 1. Função com MongoDB, BrasilAPI e a nova funcionalidade do Vinicius
+  /**
+   * 1. Função com MongoDB, BrasilAPI e a nova funcionalidade do Vinicius
+   */
   async addMedication(nome, dosagem, horario, cep) {
     if (!nome || nome.trim() === '') throw new Error("O nome do medicamento não pode ser vazio.");
     
@@ -14,11 +18,46 @@ export default class MedicationManager {
       console.log(`\n\x1b[33m⚠️  [ALERTA DE AGENDA]: Você já possui o medicamento "${conflito.nome}" agendado para as ${horario}!\x1b[0m`);
     }
 
-    const novoMed = new Medication({ nome, dosagem, horario, cep });
+    // INTEGRAÇÃO BRASILAPI: Busca endereço pelo CEP via Axios
+    let endereco = { cidade: "Desconhecida", bairro: "Desconhecido" };
+    if (cep) {
+      try {
+        const response = await axios.get(`https://brasilapi.com.br/api/cep/v1/${cep}`);
+        endereco = {
+          cidade: response.data.city || "Desconhecida",
+          bairro: response.data.neighborhood || "Desconhecido"
+        };
+      } catch (error) {
+        console.log(`\n\x1b[31m⚠️  [ERRO]: Falha ao consultar o CEP ${cep}. Usando valores padrão.\x1b[0m`);
+      }
+    }
+
+    const novoMed = new Medication({ 
+      id: uuidv4(),
+      nome, 
+      dosagem, 
+      horario, 
+      cep,
+      endereco 
+    });
     return await novoMed.save();
   }
 
-  // Método que faltava na branch do Vinicius para os testes de adesão passarem!
+  async listAll() {
+    return await Medication.find();
+  }
+
+  async removeMedication(id) {
+    try {
+      return await Medication.findByIdAndDelete(id);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * Método que faltava na branch do Vinicius para os testes de adesão passarem!
+   */
   async getAdesaoReport() {
     const meds = await Medication.find() || [];
     const periodos = { manha: 0, tarde: 0, noite: 0 };

@@ -29,12 +29,12 @@
   },
   "devDependencies": {
     "eslint": "^8.57.1",
-    "jest": "^30.3.0",
-    "uuid": "^10.0.0"
+    "jest": "^30.3.0"
   },
   "dependencies": {
     "axios": "^1.16.1",
     "dotenv": "^16.6.1",
-    "mongoose": "^8.24.0"
+    "mongoose": "^8.24.0",
+    "uuid": "^10.0.0"
   }
 }

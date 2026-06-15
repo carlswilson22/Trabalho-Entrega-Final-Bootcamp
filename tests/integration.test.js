@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 import axios from 'axios';
 import stream from 'stream';
 import { startCLI } from '../src/index.js';
@@ -10,6 +12,7 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
   let cli;
 
   beforeEach(() => {
+    process.env.MONGODB_URI = 'mongodb://localhost:27017/test';
     jest.restoreAllMocks();
     
     // spyOn nativos substituindo os antigos jest.mock()
