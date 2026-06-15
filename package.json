@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --no-cache",
     "lint": "eslint ."
   },
   "keywords": [
@@ -29,8 +29,7 @@
   },
   "devDependencies": {
     "eslint": "^8.57.1",
-    "jest": "^30.3.0",
-    "uuid": "^10.0.0"
+    "jest": "^30.3.0"
   },
   "dependencies": {
     "axios": "^1.16.1",

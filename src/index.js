@@ -67,6 +67,7 @@ async function startCLI(inputStream = process.stdin, outputStream = process.stdo
   }
 
   await showMenu();
+  return { rl };
 }
 
 // =====================================================================
