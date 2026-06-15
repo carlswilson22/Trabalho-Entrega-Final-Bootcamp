@@ -1,6 +1,6 @@
 # 💊 MedRemind - Lembrete de Medicamentos CLI
 
-**Versão:** 1.1.0
+**Versão:** 1.4.0
 
 ## 🎯 Sobre o Projeto
 
