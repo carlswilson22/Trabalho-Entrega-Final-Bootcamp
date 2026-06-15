@@ -1,16 +1,13 @@
 import axios from 'axios';
-import Medication from './models/Medication.js'; // Importe o seu modelo Mongoose
+import Medication from './models/Medication.js';
 
 class MedicationManager {
-  // Não precisamos mais do construtor com array, pois o banco é nossa fonte da verdade
 
   async addMedication(nome, dosagem, horario, cep) {
-    // Validação básica (o Aluno 2 pode reforçar com a lib 'validator' depois)
     if (!nome || nome.trim() === '') {
       throw new Error("O nome do medicamento não pode ser vazio.");
     }
 
-    // Criamos e salvamos no MongoDB
     const novoMed = new Medication({
       nome: nome.trim(),
       dosagem: dosagem.trim(),
@@ -22,7 +19,6 @@ class MedicationManager {
   }
 
   async listAll() {
-    // Busca tudo no MongoDB
     return await Medication.find();
   }
 
@@ -68,7 +64,6 @@ class MedicationManager {
   }
 
   async removeMedication(id) {
-    // Remove pelo ID do MongoDB
     return await Medication.findByIdAndDelete(id);
   }
 
