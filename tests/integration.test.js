@@ -12,7 +12,7 @@ describe('CLI Integration Tests (Entrada e Saída com Validação)', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     
-    // Desliga chamadas externas e o Mongoose nativo usando spyOn puro
+    // spyOn nativos substituindo os antigos jest.mock()
     jest.spyOn(mongoose, 'connect').mockResolvedValue(true);
     jest.spyOn(Medication.prototype, 'save').mockImplementation(function() {
       return Promise.resolve(this);

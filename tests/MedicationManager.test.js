@@ -6,13 +6,12 @@ describe('MedicationManager (Testes Unitários)', () => {
 
   beforeEach(() => {
     manager = new MedicationManager();
-    jest.restoreAllMocks(); // Limpa as espionagens entre um teste e outro
+    jest.restoreAllMocks();
   });
 
   test('deve salvar um medicamento corretamente', async () => {
     const mockMed = { id: '123', nome: 'Aspirina', dosagem: '500mg', horario: '12:00' };
     
-    // Intercepta os métodos do Mongoose em tempo de execução de forma limpa
     jest.spyOn(Medication.prototype, 'save').mockResolvedValue(mockMed);
     jest.spyOn(Medication, 'findOne').mockResolvedValue(null);
 
